@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AGL Migrate Data</title>
+
+    <link
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container" style="width: 60%">
+      <div class="text-center mb-4 mt-5">
+        <h1>AGL Migrate Data</h1>
+        <h4>Make sure the server is running on http://localhost:3002</h4>
+      </div>
+
+      <div class="d-flex justify-content-center">
+        <!-- Left side buttons -->
+        <div class="mr-5">
+          <div class="mb-2">
+            <button
+              type="button"
+              class="btn btn-primary btn-block p-2"
+              id="migrate_students"
+            >
+              migrate_students
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary btn-block p-2"
+              id="migrate_fee_types"
+            >
+              migrate_fee_types
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary btn-block p-2"
+              id="migrate_expenses"
+            >
+              migrate_expenses
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary btn-block p-2"
+              id="migrate_roles"
+            >
+              migrate_roles
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary btn-block p-2"
+              id="migrate_users"
+            >
+              migrate_users
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary btn-block p-2"
+              id="migrate_branches"
+            >
+              migrate_branches
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary btn-block p-2"
+              id="migrate_branchFees"
+            >
+              migrate_branchFees
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary btn-block p-2"
+              id="migrate_branchStudents"
+            >
+              migrate_branchStudents
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary btn-block p-2"
+              id="migrate_transactions"
+            >
+              migrate_transactions
+            </button>
+          </div>
+        </div>
+
+        <!-- Right side buttons -->
+        <div class="ml-5">
+          <div class="mb-2">
+            <button
+              type="button"
+              class="btn btn-danger btn-block p-2"
+              id="delete_students"
+            >
+              delete_students
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger btn-block p-2"
+              id="delete_fee_types"
+            >
+              delete_fee_types
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger btn-block p-2"
+              id="delete_expenses"
+            >
+              delete_expenses
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger btn-block p-2"
+              id="delete_roles"
+              disabled
+            >
+              delete_roles
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger btn-block p-2"
+              id="delete_users"
+            >
+              delete_users
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger btn-block p-2"
+              id="delete_branches"
+            >
+              delete-branches
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger btn-block p-2"
+              id="delete_branche_fees"
+            >
+              delete_branche_fees
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger btn-block p-2"
+              id="delete_branchStudents"
+            >
+              delete_branchStudents
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger btn-block p-2"
+              id="delete_transactions"
+            >
+              delete_transactions
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="loading"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+      "
+    >
+      <div
+        class="text-center"
+        style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        "
+      >
+        <div class="spinner-border text-primary" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Array of button ids
+      const buttonIds = [
+        "migrate_students",
+        "migrate_fee_types",
+        "migrate_expenses",
+        "migrate_users",
+        "migrate_roles",
+        "migrate_branches",
+        "migrate_branchFees",
+        "migrate_branchStudents",
+        "migrate_transactions",
+        "delete_students",
+        "delete_fee_types",
+        "delete_expenses",
+        "delete_users",
+        "delete_roles",
+        "delete_branches",
+        "delete_branche_fees",
+        "delete_branchStudents",
+        "delete_transactions",
+      ];
+
+      // Attach event listeners to each button
+      buttonIds.forEach((id) => {
+        const button = document.getElementById(id);
+        button.addEventListener("click", () => {
+          makeRequest(id);
+        });
+      });
+
+      function showLoading() {
+        document.getElementById("loading").style.display = "block";
+      }
+
+      function hideLoading() {
+        document.getElementById("loading").style.display = "none";
+      }
+
+      function makeRequest(buttonId) {
+        showLoading();
+        fetch(`http://localhost:3002/${buttonId}`)
+          .then((response) => {
+            hideLoading();
+            if (response.status !== 200) {
+              alert(
+                "Problem in requesting " +
+                  buttonId +
+                  " please check if data is available"
+              );
+            } else {
+              return response.json(); // Parse the JSON response
+            }
+          })
+          .then((data) => {
+            alert(data.message);
+          })
+          .catch((error) => {
+            console.error(
+              "There was a problem with the fetch operation:",
+              error
+            );
+          });
+      }
+    </script>
+  </body>
+</html>
