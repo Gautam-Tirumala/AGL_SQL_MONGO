@@ -1,3 +1,4 @@
+const AddStudents = require("./model/students_model");
 let studentinfo = require("./model/students_model");
 let transaction = require("./model/transactions-model");
 
@@ -20,7 +21,7 @@ const addTransactionnumber = (reqdata) => {
       }
       let tran_id = resObj._id;
        if(tran_id.toString() == 5){
-          console.log("pakad leyaaa");
+          // console.log("pakad leyaaa");
        }
      
 
@@ -49,7 +50,15 @@ const addTransactionnumber = (reqdata) => {
 
 const addManualBillFunction = async (data) => {
   let idToGive = data.id.toString();
-    let student = await studentinfo.create({
+  
+  let studentIdExist = await AddStudents.findOne({ id: idToGive }, { _id: 1 });
+   const regex = /ObjectId\('(\w+)'\)/;
+   const match = regex.exec(studentIdExist);
+   const extracted_id = match ? match[1] : null;
+ 
+let student;
+  if (!extracted_id) {
+    student = await studentinfo.create({
       org_id: data.org_id,
       reg_type: "M",
       student_name: data.student_name,
@@ -66,7 +75,34 @@ const addManualBillFunction = async (data) => {
       created_date_time: data.current_date_time,
       manual_created_date_time: data.current_date_time,
     });
-    let student_id = (student?._id).toString();
+  }
+
+  const currentAcadamicYear = (student_id) => {
+    let id = student_id.split("-")[0];
+    let academicYear = parseInt("20" + id);
+    let currentYear = new Date().getFullYear();
+    let difference = currentYear - academicYear;
+    if (difference >= 4) {
+      return "662a4e43862115e621e1eefc";
+    } else if (difference === 3) {
+      return "662a4e38862115e621e1eef8";
+    } else if (difference === 2) {
+      return "662a4e2b862115e621e1eef4";
+    } else {
+      return "662a3ef5862115e621e1ea55";
+    }
+  };
+  
+
+    
+    // console.log(studentIdExist);
+    let student_id;
+    if (studentIdExist) {
+      student_id = extracted_id;
+      data.academic_years_id = currentAcadamicYear(idToGive)
+    } else {
+      student_id = (student?._id).toString();
+    }
     
 
     let paiddetails = [];
@@ -75,13 +111,14 @@ const addManualBillFunction = async (data) => {
       ...item,
       student_id: student_id,
     }));
-let transactionidvalue = 1;
+
+let tranvalue = data.transactionIdValue;
 
     // import transaction
-     const tranvalue = await transaction
-       .find()
-       .sort({ transactionidvalue: -1 })
-       .limit(1);
+    //  const tranvalue = await transaction
+    //    .find()
+    //    .sort({ transactionidvalue: -1 })
+    //    .limit(1);
 
      
      let billno;
@@ -91,31 +128,33 @@ let transactionidvalue = 1;
       // added
       //  if (tranvalue.length == 0) {
         
-     if (tranvalue.length > 0 && !tranvalue[0]?.transactionidvalue) {
-       billno = todaydate + addLeadingZeros(transactionidvalue, 3);
-     } else {
-       transactionidvalue = parseInt(tranvalue[0]?.transactionidvalue) + 1;
+    //  if (tranvalue.length > 0 ) {
+    //    billno = todaydate + addLeadingZeros(transactionidvalue, 3);
+    //  } else {
+    //    transactionidvalue = parseInt(tranvalue[0]?.transactionidvalue) + 1;
 
-       billno = tranvalue[0].bill_number;
-       let date = tranvalue[0]?.created_date_time_value ?? dateTime;
-       let date1 = date.split(" ")[0];
-       let date2 = date1.replace(/-/g, "");
-       if (date2 == todaydate) {
-         billno = parseInt(billno) + 1;
-         // billno = todaydate + addLeadingZeros(transactionidvalue, 3);
-       } else {
-         billno = todaydate + addLeadingZeros(1, 3);
-       }
-     }
-     let transaction_number =
-       "STDTRNS" + addLeadingZeros(transactionidvalue, 5);
+    //    billno = tranvalue[0].bill_number;
+    //    let date = tranvalue[0]?.created_date_time_value ?? dateTime;
+    //    let date1 = date.split(" ")[0];
+    //    let date2 = date1.replace(/-/g, "");
+    //    if (date2 == todaydate) {
+    //      billno = parseInt(billno) + 1;
+    //      // billno = todaydate + addLeadingZeros(transactionidvalue, 3);
+    //    } else {
+    //      billno = todaydate + addLeadingZeros(1, 3);
+    //    }
+    //  }
+    billno = todaydate + addLeadingZeros(tranvalue, 3);
+
+
+     let transaction_number = "STDTRNS" + addLeadingZeros(tranvalue, 5);
 
 
      let objvalue = {};
      objvalue["tot_amt"] = data.amount;
      objvalue["bill_number"] = billno;
      // objvalue['transaction_number'] = transaction_number;
-     objvalue["transactionidvalue"] = transactionidvalue;
+     objvalue["transactionidvalue"] = tranvalue;
      objvalue["created_date_time_value"] = data.created_date_time;
      objvalue["paiddetails"] = paiddetails;
 

@@ -21,6 +21,7 @@ const mysql = require("mysql");
 const mongoose = require("mongoose");
 const { format } = require("date-fns");
 const { enIN } = require("date-fns/locale/en-IN");
+const moment = require("moment");
 require("dotenv").config();
 
 const app = express();
@@ -622,6 +623,22 @@ app.get("/migrate_branchStudents", async (req, res) => {
       // "662a4e43862115e621e1eefc",
     ];
 
+    const currentAcadamicYear = (student_id) =>{
+      let id = student_id.split("-")[0];
+      let academicYear = parseInt("20" + id);
+      let currentYear = new Date().getFullYear();
+       let difference = currentYear - academicYear;
+     if (difference >= 4) {
+       return "662a4e43862115e621e1eefc";
+     } else if (difference === 3) {
+       return "662a4e38862115e621e1eef8";
+     } else if (difference === 2) {
+       return "662a4e2b862115e621e1eef4";
+     } else {
+       return "662a3ef5862115e621e1ea55"; 
+     }
+    }
+
     for (let i = 0; i < academic_years_array.length; i++) {
       enrichedData.forEach((branches) => {
         // Map MySQL fields to MongoDB fields
@@ -630,14 +647,14 @@ app.get("/migrate_branchStudents", async (req, res) => {
           branch_id: branches.branch_id,
           amount: branches.amount,
           calendar_years_id: branches.calendar_years_id,
-          academic_years_id: academic_years_array[i],
+          // academic_years_id: academic_years_array[i],
           // academic_years_id: /.+-.+-/.test(branches.student_id)
           //   ? String(currentAcadamicYear(branches.student_id))
           //   : "662a4e43862115e621e1eefc",
-          // academic_years_id : String(currentAcadamicYear(branches.student_id)),
+          academic_years_id: String(currentAcadamicYear(branches.student_id)),
           created_date_time: formattedDate,
           created_by: "6629e3b4e4c90ac039c86556", //branches.created_by,
-          status: 1, //branches.status,
+          status: branches.status, //branches.status,
           org_id: "6629e3c0e4c90ac039c865c7",
         };
      
@@ -796,6 +813,21 @@ app.get("/migrate_transactions", async (req, res) => {
       "662a4e38862115e621e1eef8",
       "662a4e43862115e621e1eefc",
     ];
+     const currentAcadamicYear = (student_id) => {
+       let id = student_id.split("-")[0];
+       let academicYear = parseInt("20" + id);
+       let currentYear = new Date().getFullYear();
+       let difference = currentYear - academicYear;
+       if (difference >= 4) {
+         return "662a4e43862115e621e1eefc";
+       } else if (difference === 3) {
+         return "662a4e38862115e621e1eef8";
+       } else if (difference === 2) {
+         return "662a4e2b862115e621e1eef4";
+       } else {
+         return "662a3ef5862115e621e1ea55";
+       }
+     };
     // console.log("enrichedData is ", data[0].create_date_time);
 
     // Enrich MySQL data with security names
@@ -815,8 +847,11 @@ app.get("/migrate_transactions", async (req, res) => {
               : transactions.student_id.split("-")[0]
           ],
         student_name: transactions.student_name,
+        transactionIdValue: transactions.transaction_id,
       }))
       .sort((a, b) => a.transactions_id - b.transactions_id);
+
+    
 
     
 
@@ -833,7 +868,7 @@ app.get("/migrate_transactions", async (req, res) => {
 
         created_date_time_value: convertDate(tt.create_date_time),
 
-        // transactionidvalue: { type: Number },
+        transactionidvalue: tt.transactionIdValue,
 
         tot_amt: cleanValue(tt.amount),
 
@@ -849,18 +884,19 @@ app.get("/migrate_transactions", async (req, res) => {
             upi: cleanValue(tt.upi),
             bill_type: tt.bill_type,
             status: tt.status,
-            transaction_type: tt.transtype,
+            transaction_type: tt.transaction_type,
             created_by: tt.created_by_id,
 
             // updated_by: { type: String },
+            
 
             org_id: "6629e3c0e4c90ac039c865c7",
             created_date_time: convertDate(tt.create_date_time),
             year: year,
             branch_id: tt.branch_id,
-            date: convertDate(tt.date),
+            date: moment(tt.date).format('YYYY-MM-DD'),
             //  academic_years_id:  academic_years_array[i],
-            // academic_years_id: String(currentAcadamicYear(tt.student_id)),
+            academic_years_id: String(currentAcadamicYear(tt.student_id)),
 
             calendar_years_id: tt.calendar_years_id,
             transaction_number: tt.transaction_number,
@@ -873,24 +909,24 @@ app.get("/migrate_transactions", async (req, res) => {
       const currentDate = tt.create_date_time;
       const formattedDate = format(currentDate, "yyyy-MM-dd HH:mm:ss");
 
-      // console.log("formattedDate is", formattedDate);
+      // console.log("formattedDate is", tt.transaction_type);
 
 
       // start
-      if (!/.+-.+-/.test(tt.student_id)) {
+      if (tt.transaction_type === 'M') {
         let obj = {};
         // obj['student_id'] = student_id;
         obj["sub_fee_id"] = tt.fee_type_id;
         obj["id"] = tt.student_id;
         obj["student_name"] = tt.student_name;
-        obj["date"] = convertDate(tt.date);
-        obj["payment_method"] = tt.payment_method;
+        (obj["date"] = moment(tt.date).format("YYYY-MM-DD")),
+          (obj["payment_method"] = tt.payment_method);
         obj["amount"] = cleanValue(tt.amount);
         obj["cash"] = cleanValue(tt.cash);
         obj["bank"] = cleanValue(tt.bank);
         obj["upi"] = cleanValue(tt.upi);
         obj["bill_type"] = tt.bill_type;
-        obj["transaction_type"] = tt.transtype;
+        obj["transaction_type"] = tt.transaction_type;
         obj["status"] = tt.status;
         obj["created_by"] = tt.created_by_id;
         obj["org_id"] = "6629e3c0e4c90ac039c865c7";
@@ -898,8 +934,7 @@ app.get("/migrate_transactions", async (req, res) => {
         obj["academic_years_id"] = "";
         obj["calendar_years_id"] = tt.calendar_years_id;
         obj["branch_id"] = tt.branch_id;
-
-        // console.log(obj);
+        obj["transactionIdValue"] = tt.transactionIdValue;
 
         await addManualBillFunction(obj);
 
