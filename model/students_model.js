@@ -33,6 +33,8 @@ const studentSchema = mongoose.Schema({
         default: '0'
     },
     org_id:{type: String},
+    academic_year_id:{type: String},
+    calendar_year_id:{type: String},
     created_by:{type: String},
     updated_by:{type: String},
     deleted_by:{type: String},

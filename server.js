@@ -56,6 +56,47 @@ mongoose
     console.log("MongoDB Connection Error:", error.message);
   });
 
+
+  // Replace with current Academic Year values 
+  const currentAcadamicYear = (student_id) =>{
+    let id = student_id.split("-")[0];
+    let academicYear = parseInt("20" + id);
+    let currentYear = new Date().getFullYear();
+     let difference = currentYear - academicYear;
+   if (difference >= 4) {
+     return "662a4e43862115e621e1eefc";
+   } else if (difference === 3) {
+     return "662a4e38862115e621e1eef8";
+   } else if (difference === 2) {
+     return "662a4e2b862115e621e1eef4";
+   } else {
+     return "662a3ef5862115e621e1ea55"; 
+   }
+  }
+
+
+    //Replace with current Calender Year values 
+  const currentCalendarYear = (student_id) =>{
+    let id = student_id.split("-")[0];
+    let calenderYear = parseInt("20" + id);
+    // let currentYear = new Date().getFullYear();
+    //  let difference = currentYear - academicYear;
+   if (calenderYear === "2019") {
+     return "662a4e43862115e621e1eefc";
+   } else if (calenderYear === "2020") {
+     return "662a4e38862115e621e1eef8";
+   } else if (calenderYear === "2021") {
+     return "662a4e2b862115e621e1eef4";
+   } else if (calenderYear === "2022") {
+     return "662a3ef5862115e621e1ea55";
+   } else if (calenderYear === "2023") {
+     return "662a3ef5862115e621e1ea55";
+   } else if (calenderYear === "2024") {
+     return "662a3ef5862115e621e1ea55";
+   }
+ 
+  }
+
 app.get("/migrate_students", (req, res) => {
   const sql = "SELECT * FROM student_info";
   mysqlConnection.query(sql, (err, data) => {
@@ -93,6 +134,8 @@ app.get("/migrate_students", (req, res) => {
         updated_by: "6629e3b4e4c90ac039c86556", //student.modified_by,
         status: student.status,
         org_id: "6629e3c0e4c90ac039c865c7",
+        academic_year_id:currentAcadamicYear(student.id),
+        calendar_year_id:currentCalendarYear(student.id),
       };
 
       // arr.push(mappedStudent);
@@ -623,21 +666,7 @@ app.get("/migrate_branchStudents", async (req, res) => {
       // "662a4e43862115e621e1eefc",
     ];
 
-    const currentAcadamicYear = (student_id) =>{
-      let id = student_id.split("-")[0];
-      let academicYear = parseInt("20" + id);
-      let currentYear = new Date().getFullYear();
-       let difference = currentYear - academicYear;
-     if (difference >= 4) {
-       return "662a4e43862115e621e1eefc";
-     } else if (difference === 3) {
-       return "662a4e38862115e621e1eef8";
-     } else if (difference === 2) {
-       return "662a4e2b862115e621e1eef4";
-     } else {
-       return "662a3ef5862115e621e1ea55"; 
-     }
-    }
+   
 
     for (let i = 0; i < academic_years_array.length; i++) {
       enrichedData.forEach((branches) => {
@@ -813,21 +842,7 @@ app.get("/migrate_transactions", async (req, res) => {
       "662a4e38862115e621e1eef8",
       "662a4e43862115e621e1eefc",
     ];
-     const currentAcadamicYear = (student_id) => {
-       let id = student_id.split("-")[0];
-       let academicYear = parseInt("20" + id);
-       let currentYear = new Date().getFullYear();
-       let difference = currentYear - academicYear;
-       if (difference >= 4) {
-         return "662a4e43862115e621e1eefc";
-       } else if (difference === 3) {
-         return "662a4e38862115e621e1eef8";
-       } else if (difference === 2) {
-         return "662a4e2b862115e621e1eef4";
-       } else {
-         return "662a3ef5862115e621e1ea55";
-       }
-     };
+    
     // console.log("enrichedData is ", data[0].create_date_time);
 
     // Enrich MySQL data with security names
