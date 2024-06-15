@@ -151,6 +151,60 @@ app.get("/migrate_students", (req, res) => {
   });
 });
 
+app.get("/migrate_old_students", (req, res) => {
+  const sql = "SELECT * FROM old_student_info";
+  mysqlConnection.query(sql, (err, data) => {
+    if (err) {
+      console.error("MySQL Query Error:", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    let arr = [];
+    // Assuming data is an array of objects
+    data.forEach((student) => {
+      // Map MySQL fields to MongoDB fields
+      const mappedStudent = {
+        student_name: student.student_name,
+        student_phone_number: student.student_phone_number,
+        hall_ticket_number: student.hall_ticket_number,
+        admission_number: student.admission_number,
+        id: student.id,
+        gender: student.gender,
+        dob: student.dob,
+        caste: student.caste,
+        jnanbhumi_number: student.jnanbhumi_number,
+        aadhaar_number: student.aadhaar_number,
+        ssc: student.ssc,
+        second_language: student.second_language,
+        normal_created_date_time: student.create_date_time
+          .toISOString()
+          .replace(/T/, " ")
+          .replace(/\..+/, ""),
+        created_date_time: student.modify_date_time
+          .toISOString()
+          .replace(/T/, " ")
+          .replace(/\..+/, ""),
+        created_by: "6629e3b4e4c90ac039c86556", //student.created_by,
+        updated_by: "6629e3b4e4c90ac039c86556", //student.modified_by,
+        status: student.status,
+        org_id: "6629e3c0e4c90ac039c865c7",
+        academic_year_id:currentAcadamicYear(student.id),
+        calendar_year_id:currentCalendarYear(student.id),
+      };
+
+      // arr.push(mappedStudent);
+      // Assuming AddStudents.create is an asynchronous function (returns a promise)
+      AddStudents.create(mappedStudent).catch((mongoError) => {
+        console.error("MongoDB Insert Error:", mongoError);
+        res.status(500).json({ error: "Internal Server Error" });
+      });
+    });
+
+    // res.json(arr);
+    res.json({ message: "Students Migrated successfully" });
+  });
+});
+
 app.get("/migrate_fee_types", (req, res) => {
   const sql = 'SELECT * FROM fee_details WHERE status="1"';
   mysqlConnection.query(sql, (err, data) => {
