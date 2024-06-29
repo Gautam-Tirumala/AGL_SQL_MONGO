@@ -50,11 +50,14 @@ const addTransactionnumber = (reqdata) => {
 
 const addManualBillFunction = async (data) => {
   let idToGive = data.id.toString();
+  // console.log("idToGive-->", idToGive);
   
   let studentIdExist = await AddStudents.findOne({ id: idToGive }, { _id: 1 });
    const regex = /ObjectId\('(\w+)'\)/;
    const match = regex.exec(studentIdExist);
    const extracted_id = match ? match[1] : null;
+
+  //  console.log("extracted_id-- > ",extracted_id);
  
 let student;
   if (!extracted_id) {
@@ -77,21 +80,21 @@ let student;
     });
   }
 
-  const currentAcadamicYear = (student_id) => {
-    let id = student_id.split("-")[0];
-    let academicYear = parseInt("20" + id);
-    let currentYear = new Date().getFullYear();
-    let difference = currentYear - academicYear;
-    if (difference >= 4) {
-      return "6657017ef8b09646c45277d4";
-    } else if (difference === 3) {
-      return "66570176f8b09646c45277d0";
-    } else if (difference === 2) {
-      return "6657016df8b09646c45277cc";
-    } else {
-      return "6657015ef8b09646c45277c8";
-    }
-  };
+   const currentAcadamicYear = (student_id) => {
+     let id = student_id.split("-")[0];
+     let academicYear = parseInt("20" + id);
+     let currentYear = new Date().getFullYear();
+     let difference = currentYear - academicYear;
+     //  if (difference >= 4) {
+     //    return "6657017ef8b09646c45277d4";
+     if (difference >= 3) {
+       return "667d49991aa3c80432422ebd";
+     } else if (difference === 2) {
+       return "667d49961aa3c80432422eb9";
+     } else {
+       return "667d49921aa3c80432422eb5";
+     }
+   };
   
 
     

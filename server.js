@@ -22,6 +22,7 @@ const mongoose = require("mongoose");
 const { format } = require("date-fns");
 const { enIN } = require("date-fns/locale/en-IN");
 const moment = require("moment");
+const relieveModel = require("./model/relieved_amounts");
 require("dotenv").config();
 
 const app = express();
@@ -42,10 +43,10 @@ const mysqlConnection = mysql.createConnection({
   user: "root",
   password: "",
   // database: "aglvzm_instafee",
-  database: "agl_testing",
+  database: "agl0",
 });
 
-const mongoURL = "mongodb://127.0.0.1:27017/agl12";
+const mongoURL = "mongodb://127.0.0.1:27017/agl0";
 
 mongoose
   .connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -63,14 +64,14 @@ mongoose
     let academicYear = parseInt("20" + id);
     let currentYear = new Date().getFullYear();
      let difference = currentYear - academicYear;
-   if (difference >= 4) {
-     return "6657017ef8b09646c45277d4";
-   } else if (difference === 3) {
-     return "66570176f8b09646c45277d0";
+  //  if (difference >= 4) {
+  //    return "6657017ef8b09646c45277d4";
+    if (difference >= 3) {
+     return "667d49991aa3c80432422ebd";
    } else if (difference === 2) {
-     return "6657016df8b09646c45277cc";
+     return "667d49961aa3c80432422eb9";
    } else {
-     return "6657015ef8b09646c45277c8"; 
+     return "667d49921aa3c80432422eb5"; 
    }
   }
 
@@ -82,19 +83,19 @@ mongoose
     // let currentYear = new Date().getFullYear();
     //  let difference = currentYear - academicYear;
    if (calenderYear === 2019) {
-     return "6657019df8b09646c45277df";
+     return "667d49aa1aa3c80432422ec8";
    } else if (calenderYear === 2020) {
-     return "665701a6f8b09646c45277e3";
+     return "667d49b11aa3c80432422ecc";
    } else if (calenderYear === 2021) {
-     return "665701aef8b09646c45277e7";
+     return "667d49b91aa3c80432422ed0";
    } else if (calenderYear === 2022) {
-     return "665701b6f8b09646c45277eb";
+     return "667d49bd1aa3c80432422ed4";
    } else if (calenderYear === 2023) {
-     return "665701bdf8b09646c45277ef";
+     return "667d49c41aa3c80432422ed8";
    } else if (calenderYear === 2024) {
-     return "665701c4f8b09646c45277f3";
+     return "667d4a561aa3c80432422edd";
    }
-   else if (calenderYear === "2025") return "665701d1f8b09646c45277f7";
+  //  else if (calenderYear === 2025) return "665701d1f8b09646c45277f7";
  
   }
 
@@ -131,10 +132,10 @@ app.get("/migrate_students", (req, res) => {
           .toISOString()
           .replace(/T/, " ")
           .replace(/\..+/, ""),
-        created_by: "6656fdfb1c86610d4fcb8120", //student.created_by,
-        updated_by: "6656fdfb1c86610d4fcb8120", //student.modified_by,
+        created_by: "667d48e51aa3c80432422e91", //student.created_by,
+        updated_by: "667d48e51aa3c80432422e91", //student.modified_by,
         status: student.status,
-        org_id: "6656fd6d1c86610d4fcb8003",
+        org_id: "667d45871aa3c80432422d5f",
         academic_year_id:currentAcadamicYear(student.id),
         calendar_year_id:currentCalendarYear(student.id),
       };
@@ -151,7 +152,7 @@ app.get("/migrate_students", (req, res) => {
   });
 });
 app.get("/migrate_old_students", (req, res) => {
-  const sql = "SELECT * FROM old_student_info limit 1";
+  const sql = "SELECT * FROM old_student_info";
   mysqlConnection.query(sql, (err, data) => {
     if (err) {
       console.error("MySQL Query Error:", err);
@@ -183,10 +184,10 @@ app.get("/migrate_old_students", (req, res) => {
           ?.toISOString()
           .replace(/T/, " ")
           .replace(/\..+/, ""),
-        created_by: "6656fdfb1c86610d4fcb8120", //student.created_by,
-        updated_by: "6656fdfb1c86610d4fcb8120", //student.modified_by,
+        created_by: "667d48e51aa3c80432422e91", //student.created_by,
+        updated_by: "667d48e51aa3c80432422e91", //student.modified_by,
         status: student.status,
-        org_id: "6656fd6d1c86610d4fcb8003",
+        org_id: "667d45871aa3c80432422d5f",
         academic_year_id: currentAcadamicYear(student.id),
         calendar_year_id: currentCalendarYear(student.id),
       };
@@ -199,8 +200,7 @@ app.get("/migrate_old_students", (req, res) => {
       let idTOGiveInOldStudentData
       let studentAlreadyExist = await AddStudents.find({ id: student.id });
       if(studentAlreadyExist.length > 0){
-        console.log("studentAlreadyExist-- >", studentAlreadyExist);
-        console.log("studentAlreadyExist[0]._id-- > ",studentAlreadyExist[0]._id);
+       
         idTOGiveInOldStudentData = studentAlreadyExist[0]._id;
       }
       else{
@@ -208,20 +208,20 @@ app.get("/migrate_old_students", (req, res) => {
         idTOGiveInOldStudentData = results._id
       }
 
-      console.log("idTOGiveInOldStudentData-->",idTOGiveInOldStudentData);
+      // console.log("idTOGiveInOldStudentData-->",idTOGiveInOldStudentData);
 
 
       const oldStudentdata = {
         student_id: idTOGiveInOldStudentData,
         old_due_amount: student.original_due,
         status: "1",
-        org_id: "6656fd6d1c86610d4fcb8003",
+        org_id: "667d45871aa3c80432422d5f",
         created_date_time: student.modify_date_time
           ?.toISOString()
           .replace(/T/, " ")
           .replace(/\..+/, ""),
-        created_by: "6656fdfb1c86610d4fcb8120",
-        updated_by: "6656fdfb1c86610d4fcb8120",
+        created_by: "667d48e51aa3c80432422e91",
+        updated_by: "667d48e51aa3c80432422e91",
       };
 
       let studentAlreadyHaveOldDue = await AddOldStudents.find({
@@ -268,63 +268,61 @@ app.get("/migrate_old_students", (req, res) => {
   });
 });
 
-// app.get("/migrate_old_dues", (req,res) =>{
 
-// })
 
-app.get("/migrate_old_students", (req, res) => {
-  const sql = "SELECT * FROM old_student_info";
-  mysqlConnection.query(sql, (err, data) => {
-    if (err) {
-      console.error("MySQL Query Error:", err);
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
+// app.get("/migrate_old_students", (req, res) => {
+//   const sql = "SELECT * FROM old_student_info";
+//   mysqlConnection.query(sql, (err, data) => {
+//     if (err) {
+//       console.error("MySQL Query Error:", err);
+//       return res.status(500).json({ error: "Internal Server Error" });
+//     }
 
-    let arr = [];
-    // Assuming data is an array of objects
-    data.forEach((student) => {
-      // Map MySQL fields to MongoDB fields
-      const mappedStudent = {
-        student_name: student.student_name,
-        student_phone_number: student.student_phone_number,
-        hall_ticket_number: student.hall_ticket_number,
-        admission_number: student.admission_number,
-        id: student.id,
-        gender: student.gender,
-        dob: student.dob,
-        caste: student.caste,
-        jnanbhumi_number: student.jnanbhumi_number,
-        aadhaar_number: student.aadhaar_number,
-        ssc: student.ssc,
-        second_language: student.second_language,
-        normal_created_date_time: student.create_date_time
-          .toISOString()
-          .replace(/T/, " ")
-          .replace(/\..+/, ""),
-        created_date_time: student.modify_date_time
-          .toISOString()
-          .replace(/T/, " ")
-          .replace(/\..+/, ""),
-        created_by: "6629e3b4e4c90ac039c86556", //student.created_by,
-        updated_by: "6629e3b4e4c90ac039c86556", //student.modified_by,
-        status: student.status,
-        org_id: "6629e3c0e4c90ac039c865c7",
-        academic_year_id:currentAcadamicYear(student.id),
-        calendar_year_id:currentCalendarYear(student.id),
-      };
+//     let arr = [];
+//     // Assuming data is an array of objects
+//     data.forEach((student) => {
+//       // Map MySQL fields to MongoDB fields
+//       const mappedStudent = {
+//         student_name: student.student_name,
+//         student_phone_number: student.student_phone_number,
+//         hall_ticket_number: student.hall_ticket_number,
+//         admission_number: student.admission_number,
+//         id: student.id,
+//         gender: student.gender,
+//         dob: student.dob,
+//         caste: student.caste,
+//         jnanbhumi_number: student.jnanbhumi_number,
+//         aadhaar_number: student.aadhaar_number,
+//         ssc: student.ssc,
+//         second_language: student.second_language,
+//         normal_created_date_time: student.create_date_time
+//           .toISOString()
+//           .replace(/T/, " ")
+//           .replace(/\..+/, ""),
+//         created_date_time: student.modify_date_time
+//           .toISOString()
+//           .replace(/T/, " ")
+//           .replace(/\..+/, ""),
+//         created_by: "667d48e51aa3c80432422e91", //student.created_by,
+//         updated_by: "667d48e51aa3c80432422e91", //student.modified_by,
+//         status: student.status,
+//         org_id: "667d45871aa3c80432422d5f",
+//         academic_year_id: currentAcadamicYear(student.id),
+//         calendar_year_id: currentCalendarYear(student.id),
+//       };
 
-      // arr.push(mappedStudent);
-      // Assuming AddStudents.create is an asynchronous function (returns a promise)
-      AddStudents.create(mappedStudent).catch((mongoError) => {
-        console.error("MongoDB Insert Error:", mongoError);
-        res.status(500).json({ error: "Internal Server Error" });
-      });
-    });
+//       // arr.push(mappedStudent);
+//       // Assuming AddStudents.create is an asynchronous function (returns a promise)
+//       AddStudents.create(mappedStudent).catch((mongoError) => {
+//         console.error("MongoDB Insert Error:", mongoError);
+//         res.status(500).json({ error: "Internal Server Error" });
+//       });
+//     });
 
-    // res.json(arr);
-    res.json({ message: "Students Migrated successfully" });
-  });
-});
+//     // res.json(arr);
+//     res.json({ message: "Students Migrated successfully" });
+//   });
+// });
 
 app.get("/migrate_fee_types", (req, res) => {
   const sql = 'SELECT * FROM fee_details WHERE status="1"';
@@ -348,10 +346,10 @@ app.get("/migrate_fee_types", (req, res) => {
         access_status: feeTypes.access_status,
         fee_order: i, //feeTypes.fee_order,
         created_date_time: datetime,
-        created_by: "6656fdfb1c86610d4fcb8120", //feeTypes.created_by,
-        // updated_by: '6656fdfb1c86610d4fcb8120', //feeTypes.modified_by,
+        created_by: "667d48e51aa3c80432422e91", //feeTypes.created_by,
+        // updated_by: '667d48e51aa3c80432422e91', //feeTypes.modified_by,
         status: feeTypes.status,
-        org_id: "6656fd6d1c86610d4fcb8003",
+        org_id: "667d45871aa3c80432422d5f",
         other_fee_id: "0",
       };
 
@@ -360,7 +358,7 @@ app.get("/migrate_fee_types", (req, res) => {
       //     res.status(500).json({ error: 'Internal Server Error' });
       // });
       // const feeidvalue = AddFeeTypes._id;
-      // createsubfee = async (feeTypes.fee_type, feeidvalue, 1, '6656fd6d1c86610d4fcb8003', i, '6656fdfb1c86610d4fcb8120', datetime);
+      // createsubfee = async (feeTypes.fee_type, feeidvalue, 1, '667d45871aa3c80432422d5f', i, '667d48e51aa3c80432422e91', datetime);
       // i++;
       AddFeeTypes.create(mappedFeeTypes)
         .then(async (createdFeeType) => {
@@ -370,9 +368,9 @@ app.get("/migrate_fee_types", (req, res) => {
             feeTypes.fee_type,
             feeidvalue,
             1,
-            "6656fd6d1c86610d4fcb8003",
+            "667d45871aa3c80432422d5f",
             1,
-            "6656fdfb1c86610d4fcb8120",
+            "667d48e51aa3c80432422e91",
             datetime
           );
         })
@@ -410,6 +408,90 @@ const createsubfee = async (
   });
 };
 
+app.get("/migrate_relievedAmounts", async (req, res) => {
+  try {
+    const sql = "SELECT * FROM relieved_amounts ORDER BY student_id ASC";
+    mysqlConnection.query(sql, async (mysqlErr, mysqlData) => {
+      if (mysqlErr) {
+        console.error("MySQL Query Error:", mysqlErr);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+       const studentIds = mysqlData.map((students) => students.student_id);
+
+      //  console.log("studentIds--> ",studentIds)
+
+          const studentIdsMap = {};
+
+         
+
+
+      const studentsData = await AddStudents.find({ id: { $in: studentIds } });
+      // console.log("studentsData-->", studentsData)
+      studentsData.forEach((students) => {
+        let objectID = students._id;
+        studentIdsMap[students.id] = objectID.toString();
+      });
+
+       for (let key in studentIdsMap) {
+         if (studentIdsMap.hasOwnProperty(key)) {
+          if(studentIdsMap[key] == undefined)
+           console.log(`${key}: ${studentIdsMap[key]}`);
+         }
+       }
+
+      // console.log("studentIdsMap--->", studentIdsMap);
+
+      let termFeeID = "667e621077b3213d17ca0d1d";
+      let statFeeID = "667e621077b3213d17ca0d1e";
+     
+      const enrichedData = mysqlData.map((data) => ({
+        ...data,
+        student_id: studentIdsMap[data.student_id],
+      }));
+
+       for (let i = 0; i < 2; i++) {
+      enrichedData.forEach((data) => {
+        // Map MySQL fields to MongoDB fields
+        const mappedExpenses = {
+          student_id : data.student_id,
+          status: data.status,
+          fee_id: i === 0 ? termFeeID : statFeeID,
+          amount: i === 0 ? data.term_amount : data.stat_amount,
+          date_relieved: data.date_relieved,
+          created_date_time: data.create_date_time
+            .toISOString()
+            .replace(/T/, " ")
+            .replace(/\..+/, ""),
+          updated_date_time: data.modified_date_time
+            .toISOString()
+            .replace(/T/, " ")
+            .replace(/\..+/, ""),
+          org_id: "667d45871aa3c80432422d5f",
+        };
+
+        // console.log("enrichedData obtained is ", mappedExpenses);
+
+    
+        if (data.status) {
+          relieveModel.create(mappedExpenses).catch((mongoError) => {
+            
+            console.error("MongoDB Insert Error:", mongoError, mappedExpenses);
+            res.status(500).json({ error: "Internal Server Error" });
+          });
+        }
+      });
+    }
+
+      // res.json(arr);
+      res.json({ message: "Expenses Migrated successfully" });
+    });
+  } catch (error) {
+    console.error("Error in migration route:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 app.get("/migrate_expenses", async (req, res) => {
   try {
     const sql = "SELECT * FROM expenses ORDER BY expenses_id ASC";
@@ -433,9 +515,9 @@ app.get("/migrate_expenses", async (req, res) => {
         securityNameMap[security.security_id.toString()] = security._id; // Assuming admin_name is the field you want
       });
 
-      securityNameMap["0"] = "6656fdfb1c86610d4fcb8120"; // no users with security id 0 so linking to admin in mongo only
+      securityNameMap["0"] = "667d48e51aa3c80432422e91"; // no users with security id 0 so linking to admin in mongo only
 
-      securityNameMap["1"] = "6656fdfb1c86610d4fcb8120"; // Admin _id created by superAdmin for a org
+      securityNameMap["1"] = "667d48e51aa3c80432422e91"; // Admin _id created by superAdmin for a org
 
       // Enrich MySQL data with security names
       // console.log("mysqlData.create_by is ", mysqlData);
@@ -473,11 +555,11 @@ app.get("/migrate_expenses", async (req, res) => {
             .replace(/T/, " ")
             .replace(/\..+/, ""),
           created_by: expanses.created_by_id,
-          // created_by: "6656fdfb1c86610d4fcb8120",
+          // created_by: "667d48e51aa3c80432422e91",
           // created_by : "662c78b8c8eb60ac3d9080fc",
           // updated_by: expanses.modified_by_id,
           // status: expanses.status,
-          org_id: "6656fd6d1c86610d4fcb8003",
+          org_id: "667d45871aa3c80432422d5f",
         };
 
         // console.log("enrichedData obtained is ",enrichedData);
@@ -553,8 +635,8 @@ app.get("/migrate_users", async (req, res) => {
           .toISOString()
           .replace(/T/, " ")
           .replace(/\..+/, ""),
-        created_by: "6656fdfb1c86610d4fcb8120", //users.created_by,
-        org_id: "6656fd6d1c86610d4fcb8003",
+        created_by: "667d48e51aa3c80432422e91", //users.created_by,
+        org_id: "667d45871aa3c80432422d5f",
       };
 
       // arr.push(mappedUsers);
@@ -590,9 +672,9 @@ app.get("/migrate_roles", (req, res) => {
           .toISOString()
           .replace(/T/, " ")
           .replace(/\..+/, ""),
-        created_by: "6656fdfb1c86610d4fcb8120", //roles.created_by,
+        created_by: "667d48e51aa3c80432422e91", //roles.created_by,
         status: roles.status,
-        org_id: "6656fd6d1c86610d4fcb8003",
+        org_id: "667d45871aa3c80432422d5f",
       };
 
       // arr.push(mappedFeeTypes);
@@ -626,11 +708,11 @@ app.get("/migrate_branches", (req, res) => {
       // Map MySQL fields to MongoDB fields
       const mappedBranches = {
         branch_name: branches.branch_name,
-        academic_years_value: 4,
+        academic_years_value: 3,
         created_date_time: formattedDate,
-        create_by: "6656fdfb1c86610d4fcb8120", //branches.created_by,
+        create_by: "667d48e51aa3c80432422e91", //branches.created_by,
         status: 1,
-        org_id: "6656fd6d1c86610d4fcb8003",
+        org_id: "667d45871aa3c80432422d5f",
       };
 
       // arr.push(mappedBranches);
@@ -642,10 +724,10 @@ app.get("/migrate_branches", (req, res) => {
         //         branche_id,
         //         sub_fee_id,
         //         amount,
-        //         '6656fd6d1c86610d4fcb8003',
+        //         '667d45871aa3c80432422d5f',
         //         calendar_years_id,
         //         academic_years_id,
-        //         '6656fdfb1c86610d4fcb8120',
+        //         '667d48e51aa3c80432422e91',
         //         datetime
         //     );
         // })
@@ -717,11 +799,25 @@ app.get("/migrate_branchFees", async (req, res) => {
 
     let arr = [];
     // Assuming data is an array of objects
+      // const currentAcadamicYear = (student_id) => {
+      //   let id = student_id.split("-")[0];
+      //   let academicYear = parseInt("20" + id);
+      //   let currentYear = new Date().getFullYear();
+      //   let difference = currentYear - academicYear;
+      //   //  if (difference >= 4) {
+      //   //    return "6657017ef8b09646c45277d4";
+      //   if (difference >= 3) {
+      //     return "667d49991aa3c80432422ebd";
+      //   } else if (difference === 2) {
+      //     return "667d49961aa3c80432422eb9";
+      //   } else {
+      //     return "667d49921aa3c80432422eb5";
+      //   }
+      // };
     let academic_years_array = [
-      "6657015ef8b09646c45277c8",
-      "6657016df8b09646c45277cc",
-      "66570176f8b09646c45277d0",
-      "6657017ef8b09646c45277d4",
+      "667d49921aa3c80432422eb5",
+      "667d49961aa3c80432422eb9",
+      "667d49991aa3c80432422ebd",
     ];
 
     for (let i = 0; i < academic_years_array.length; i++) {
@@ -735,9 +831,9 @@ app.get("/migrate_branchFees", async (req, res) => {
           academic_years_id: academic_years_array[i],
 
           created_date_time: formattedDate,
-          created_by: "6656fdfb1c86610d4fcb8120", //branches.created_by,
+          created_by: "667d48e51aa3c80432422e91", //branches.created_by,
           status: 1,
-          org_id: "6656fd6d1c86610d4fcb8003",
+          org_id: "667d45871aa3c80432422d5f",
         };
 
         // arr.push(mappedBranches);
@@ -862,9 +958,9 @@ app.get("/migrate_branchStudents", async (req, res) => {
           //   : "662a4e43862115e621e1eefc",
           academic_years_id: String(currentAcadamicYear(branches.student_id)),
           created_date_time: formattedDate,
-          created_by: "6656fdfb1c86610d4fcb8120", //branches.created_by,
+          created_by: "667d48e51aa3c80432422e91", //branches.created_by,
           status: branches.status, //branches.status,
-          org_id: "6656fd6d1c86610d4fcb8003",
+          org_id: "667d45871aa3c80432422d5f",
         };
      
 
@@ -982,8 +1078,8 @@ app.get("/migrate_transactions", async (req, res) => {
       securityNameMap[security.security_id] = security._id; // Assuming admin_name is the field you want
     });
 
-    securityNameMap["0"] = "6656fdfb1c86610d4fcb8120"; // no user with security id 0 so linking to admin only
-    securityNameMap["1"] = "6656fdfb1c86610d4fcb8120";
+    securityNameMap["0"] = "667d48e51aa3c80432422e91"; // no user with security id 0 so linking to admin only
+    securityNameMap["1"] = "667d48e51aa3c80432422e91";
 
     const FeeTypeData = await AddSubFeeTypes.find({
       sub_fee_type: { $in: FeeTypes },
@@ -1085,7 +1181,7 @@ app.get("/migrate_transactions", async (req, res) => {
             // updated_by: { type: String },
             
 
-            org_id: "6656fd6d1c86610d4fcb8003",
+            org_id: "667d45871aa3c80432422d5f",
             created_date_time: convertDate(tt.create_date_time),
             year: year,
             branch_id: tt.branch_id,
@@ -1124,7 +1220,7 @@ app.get("/migrate_transactions", async (req, res) => {
         obj["transaction_type"] = tt.transaction_type;
         obj["status"] = tt.status;
         obj["created_by"] = tt.created_by_id;
-        obj["org_id"] = "6656fd6d1c86610d4fcb8003";
+        obj["org_id"] = "667d45871aa3c80432422d5f";
         obj["created_date_time"] = formattedDate;
         obj["academic_years_id"] = "";
         obj["calendar_years_id"] = tt.calendar_years_id;
