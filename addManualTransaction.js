@@ -49,19 +49,28 @@ const addTransactionnumber = (reqdata) => {
 };
 
 const addManualBillFunction = async (data) => {
+  
   let idToGive = data.id.toString();
   // console.log("idToGive-->", idToGive);
   
   let studentIdExist = await AddStudents.findOne({ id: idToGive }, { _id: 1 });
-   const regex = /ObjectId\('(\w+)'\)/;
-   const match = regex.exec(studentIdExist);
-   const extracted_id = match ? match[1] : null;
+   
+  // console.log("studentIdExist --->", studentIdExist);
+  const idString = studentIdExist?._id?.toString();
+
+  // if (idToGive === "115145701014") {
+  //   console.log("hello", studentIdExist, idString);
+  // }
+  // console.log("idString---> ",idString);
+  //  const regex = /ObjectId\('(\w+)'\)/;
+  //  const match = regex.exec(studentIdExist);
+  //  const extracted_id = match ? match[1] : null;
 
   //  console.log("extracted_id-- > ",extracted_id);
  
 let student;
-  if (!extracted_id) {
-    student = await studentinfo.create({
+  if (!!!studentIdExist) {
+    student = await AddStudents.create({
       org_id: data.org_id,
       reg_type: "M",
       student_name: data.student_name,
@@ -79,6 +88,10 @@ let student;
       manual_created_date_time: data.current_date_time,
     });
   }
+  studentIdExist = await AddStudents.findOne({ id: idToGive }, { _id: 1 });
+  //  if (idToGive === "115145701014") {
+  //    console.log(student);
+  //  }
 
    const currentAcadamicYear = (student_id) => {
      let id = student_id.split("-")[0];
@@ -100,9 +113,9 @@ let student;
     
     // console.log(studentIdExist);
     let student_id;
-    if (studentIdExist) {
-      student_id = extracted_id;
-      data.academic_years_id = currentAcadamicYear(idToGive)
+    if (idString) {
+      student_id = idString;
+      data.academic_years_id = currentAcadamicYear(idToGive);
     } else {
       student_id = (student?._id).toString();
     }

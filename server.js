@@ -46,7 +46,7 @@ const mysqlConnection = mysql.createConnection({
   database: "agl0",
 });
 
-const mongoURL = "mongodb://127.0.0.1:27017/agl0";
+const mongoURL = "mongodb://127.0.0.1:27017/agl25";
 
 mongoose
   .connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -1142,13 +1142,12 @@ app.get("/migrate_transactions", async (req, res) => {
       }))
       .sort((a, b) => a.transactions_id - b.transactions_id);
 
-    
-
-    
-
     //  for (let i = 0; i < academic_years_array.length; i++) {
-      // console.log("enrichedData is", enrichedData);
-    enrichedData.forEach(async (tt) => {
+      console.log("enrichedData length is", enrichedData.length);
+
+    for (let i = 0; i < enrichedData.length; i++) {
+      const tt = enrichedData[i];
+
       // Map MySQL fields to MongoDB fields
       var dateString = tt.create_date_time;
       var date = new Date(dateString);
@@ -1236,7 +1235,7 @@ app.get("/migrate_transactions", async (req, res) => {
           res.status(500).json({ error: "Internal Server Error" });
         });
       }
-    });
+    }
     //  }
 
     // res.json(arr);
