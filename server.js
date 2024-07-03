@@ -152,7 +152,7 @@ app.get("/migrate_students", (req, res) => {
   });
 });
 app.get("/migrate_old_students", (req, res) => {
-  const sql = "SELECT * FROM old_student_info";
+  const sql = `SELECT * FROM old_student_info where id = "21-MCCS-57"`;
   mysqlConnection.query(sql, (err, data) => {
     if (err) {
       console.error("MySQL Query Error:", err);
@@ -851,7 +851,8 @@ app.get("/migrate_branchFees", async (req, res) => {
 });
 
 app.get("/migrate_branchStudents", async (req, res) => {
-  const sql = "SELECT id,status FROM student_info union SELECT id,status FROM old_student_info order by id desc";
+  // const sql = "SELECT id,status FROM student_info union SELECT id,status FROM old_student_info order by id desc";
+  const sql = `SELECT id,status FROM old_student_info where id = "21-MCCS-57" order by id desc`
   // const sql = "SELECT id,status from old_student_info order by id desc";
 
   // const sql = "SELECT id,status from student_info order by id desc"
@@ -980,7 +981,8 @@ app.get("/migrate_branchStudents", async (req, res) => {
 
 app.get("/migrate_transactions", async (req, res) => {
   const sql =
-    "SELECT t.*, SUBSTRING_INDEX(SUBSTRING_INDEX(t.student_id, '-', 2), '-', -1) as branch_name, fd.fee_type FROM transactions t JOIN fee_details fd ON t.fee_id = fd.fee_id";
+ `SELECT t.*, SUBSTRING_INDEX(SUBSTRING_INDEX(t.student_id, '-', 2), '-', -1) as branch_name, fd.fee_type FROM transactions t JOIN fee_details fd ON t.fee_id = fd.fee_id WHERE 1 and student_id = "21-MCCS-57"`
+    // "SELECT t.*, SUBSTRING_INDEX(SUBSTRING_INDEX(t.student_id, '-', 2), '-', -1) as branch_name, fd.fee_type FROM transactions t JOIN fee_details fd ON t.fee_id = fd.fee_id";
   // "SELECT t.*, bf.branch_name, fd.fee_type FROM transactions t JOIN fee_details fd ON t.fee_id = fd.fee_id LEFT JOIN branch_fees bf ON t.student_id LIKE CONCAT('%-', bf.branch_name, '-%') Limit 8";
 
  const convertDate = (originalDateString) => {
