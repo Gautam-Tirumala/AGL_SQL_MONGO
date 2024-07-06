@@ -23,6 +23,7 @@ const { format } = require("date-fns");
 const { enIN } = require("date-fns/locale/en-IN");
 const moment = require("moment");
 const relieveModel = require("./model/relieved_amounts");
+const subfeeDetailsModel = require("./model/sub_fee_details-model");
 require("dotenv").config();
 
 const app = express();
@@ -46,7 +47,7 @@ const mysqlConnection = mysql.createConnection({
   database: "agl0",
 });
 
-const mongoURL = "mongodb://127.0.0.1:27017/agl25";
+const mongoURL = "mongodb://127.0.0.1:27017/agl0";
 
 mongoose
   .connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -214,7 +215,7 @@ app.get("/migrate_old_students", (req, res) => {
       const oldStudentdata = {
         student_id: idTOGiveInOldStudentData,
         old_due_amount: student.original_due,
-        status: "1",
+        status: student.status === "0" ? "0" :"1",
         org_id: "667d45871aa3c80432422d5f",
         created_date_time: student.modify_date_time
           ?.toISOString()
@@ -350,7 +351,7 @@ app.get("/migrate_fee_types", (req, res) => {
         // updated_by: '667d48e51aa3c80432422e91', //feeTypes.modified_by,
         status: feeTypes.status,
         org_id: "667d45871aa3c80432422d5f",
-        other_fee_id: "0",
+        other_fee_id: feeTypes.fee_type ===  "Old dues" ? "1" : "0",
       };
 
       // AddFeeTypes.create(mappedFeeTypes).catch((mongoError) => {
@@ -410,54 +411,97 @@ const createsubfee = async (
 
 app.get("/migrate_relievedAmounts", async (req, res) => {
   try {
-    const sql = "SELECT * FROM relieved_amounts ORDER BY student_id ASC";
+    const sql =
+      "SELECT *, SUBSTRING_INDEX(SUBSTRING_INDEX(student_id, '-', 2), '-', -1) AS branch_name FROM relieved_amounts ORDER BY student_id ASC";
     mysqlConnection.query(sql, async (mysqlErr, mysqlData) => {
       if (mysqlErr) {
         console.error("MySQL Query Error:", mysqlErr);
         return res.status(500).json({ error: "Internal Server Error" });
       }
 
-       const studentIds = mysqlData.map((students) => students.student_id);
 
-      //  console.log("studentIds--> ",studentIds)
+     const sqlBranch =
+       "SELECT DISTINCT SUBSTRING_INDEX(SUBSTRING_INDEX(student_id, '-', 2), '-', -1) AS branch FROM relieved_amounts";
+
+     const getBranchNames = () => {
+       return new Promise((resolve, reject) => {
+         mysqlConnection.query(sqlBranch, (mysqlErr, branchNameData) => {
+           if (mysqlErr) {
+             console.error("MySQL Query Error:", mysqlErr);
+             return reject("Internal Server Error");
+           }
+        
+           const branchNames = branchNameData.map((branch) => branch.branch);
+           resolve(branchNames);
+         });
+       });
+     };
+
+        let branch_names = await getBranchNames();
+       const studentIds = mysqlData.map((students) =>
+         students.student_id.replace(/\s+/g, "")
+       );
+
 
           const studentIdsMap = {};
+
+          const branchIdsMap = {};
+
+           const branchesData = await AddBranches.find({
+             branch_name: { $in: branch_names },
+           });
+           branchesData.forEach((branches) => {
+            let objectID = branches._id;
+             branchIdsMap[branches.branch_name] = objectID.toString();
+           });
+
 
          
 
 
       const studentsData = await AddStudents.find({ id: { $in: studentIds } });
-      // console.log("studentsData-->", studentsData)
       studentsData.forEach((students) => {
         let objectID = students._id;
         studentIdsMap[students.id] = objectID.toString();
       });
 
-       for (let key in studentIdsMap) {
-         if (studentIdsMap.hasOwnProperty(key)) {
-          if(studentIdsMap[key] == undefined)
-           console.log(`${key}: ${studentIdsMap[key]}`);
-         }
-       }
 
-      // console.log("studentIdsMap--->", studentIdsMap);
 
-      let termFeeID = "667e621077b3213d17ca0d1d";
-      let statFeeID = "667e621077b3213d17ca0d1e";
+      // let termFeeID = "66854720f417e90d6eaf4560"; /// Sub fee id of TERM
+      // let statFeeID = "66854720f417e90d6eaf4592";  /// Sub fee id of Stat
+
+      let termFee = await subfeeDetailsModel.find(
+        { sub_fee_type: "TERM", org_id: "667d45871aa3c80432422d5f" },
+        { _id: 1 }
+      );
+      let statFee = await subfeeDetailsModel.find(
+        { sub_fee_type: "STAT", org_id: "667d45871aa3c80432422d5f" },
+        { _id: 1 }
+      );
+
+      let termFeeID = termFee[0]?._id?.toString();
+      let statFeeID = statFee[0]?._id?.toString();
+
+   
+     
      
       const enrichedData = mysqlData.map((data) => ({
         ...data,
         student_id: studentIdsMap[data.student_id],
+        branch_id : branchIdsMap[data.branch_name]
       }));
+
+    
 
        for (let i = 0; i < 2; i++) {
       enrichedData.forEach((data) => {
         // Map MySQL fields to MongoDB fields
         const mappedExpenses = {
-          student_id : data.student_id,
+          student_id: data.student_id,
           status: data.status,
           fee_id: i === 0 ? termFeeID : statFeeID,
           amount: i === 0 ? data.term_amount : data.stat_amount,
+          fee_name: i === 0 ? "TERM" : "STAT",
           date_relieved: data.date_relieved,
           created_date_time: data.create_date_time
             .toISOString()
@@ -468,6 +512,8 @@ app.get("/migrate_relievedAmounts", async (req, res) => {
             .replace(/T/, " ")
             .replace(/\..+/, ""),
           org_id: "667d45871aa3c80432422d5f",
+          branch_id: data.branch_id,
+          branch_name: data.branch_name,
         };
 
         // console.log("enrichedData obtained is ", mappedExpenses);
@@ -484,7 +530,7 @@ app.get("/migrate_relievedAmounts", async (req, res) => {
     }
 
       // res.json(arr);
-      res.json({ message: "Expenses Migrated successfully" });
+      res.json({ message: "Relieved amounts migrated successfully" });
     });
   } catch (error) {
     console.error("Error in migration route:", error);
@@ -814,6 +860,8 @@ app.get("/migrate_branchFees", async (req, res) => {
       //     return "667d49921aa3c80432422eb5";
       //   }
       // };
+
+      // Change these acadamic years while migration.
     let academic_years_array = [
       "667d49921aa3c80432422eb5",
       "667d49961aa3c80432422eb9",
@@ -1381,6 +1429,17 @@ app.get("/delete_transactions", async (req, res) => {
   try {
     // Delete all documents in the 'Transaction' collection
     const result = await AddTransactions.deleteMany({});
+    res.status(200).json({
+      message: `Deleted ${result.deletedCount} documents from the Tranastions collection`,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+app.get("/delete_relievedAmounts", async (req, res) => {
+  try {
+    // Delete all documents in the 'Transaction' collection
+    const result = await relieveModel.deleteMany({});
     res.status(200).json({
       message: `Deleted ${result.deletedCount} documents from the Tranastions collection`,
     });
